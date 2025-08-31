@@ -2,11 +2,23 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile menu toggle
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');
+    const body = document.body;
 
     if (hamburger && navMenu) {
-        hamburger.addEventListener('click', function() {
+        // Toggle mobile menu
+        hamburger.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
             hamburger.classList.toggle('active');
             navMenu.classList.toggle('active');
+            
+            // Prevent body scroll when menu is open
+            if (navMenu.classList.contains('active')) {
+                body.style.overflow = 'hidden';
+            } else {
+                body.style.overflow = '';
+            }
         });
 
         // Close mobile menu when clicking on a link
@@ -14,7 +26,37 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function() {
                 hamburger.classList.remove('active');
                 navMenu.classList.remove('active');
+                body.style.overflow = '';
             });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!hamburger.contains(e.target) && !navMenu.contains(e.target)) {
+                if (navMenu.classList.contains('active')) {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                    body.style.overflow = '';
+                }
+            }
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('active');
+                body.style.overflow = '';
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                hamburger.classList.remove('active');
+                navMenu.classList.remove('active');
+                body.style.overflow = '';
+            }
         });
     }
 
@@ -79,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Gallery filtering functionality
     initGalleryFilter();
+
 });
 
 // Visitor tracking function
@@ -342,6 +385,30 @@ function initGalleryFilter() {
         return; // Not on gallery page
     }
 
+    // Function to apply filter
+    function applyFilter(filterValue) {
+        galleryItems.forEach(item => {
+            const itemCategories = item.getAttribute('data-category');
+            if (itemCategories && itemCategories.includes(filterValue)) {
+                item.style.display = 'block';
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    item.style.display = 'none';
+                }, 300);
+            }
+        });
+    }
+
+    // Apply initial filter for "available" items on page load
+    applyFilter('available');
+
+    // Add click event listeners
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
             const filterValue = this.getAttribute('data-filter');
@@ -350,31 +417,8 @@ function initGalleryFilter() {
             filterButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             
-            // Filter gallery items
-            galleryItems.forEach(item => {
-                if (filterValue === 'all') {
-                    item.style.display = 'block';
-                    setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, 10);
-                } else {
-                    const itemCategories = item.getAttribute('data-category');
-                    if (itemCategories && itemCategories.includes(filterValue)) {
-                        item.style.display = 'block';
-                        setTimeout(() => {
-                            item.style.opacity = '1';
-                            item.style.transform = 'translateY(0)';
-                        }, 10);
-                    } else {
-                        item.style.opacity = '0';
-                        item.style.transform = 'translateY(20px)';
-                        setTimeout(() => {
-                            item.style.display = 'none';
-                        }, 300);
-                    }
-                }
-            });
+            // Apply filter
+            applyFilter(filterValue);
         });
     });
 }
@@ -403,6 +447,7 @@ function handleRamInquiry() {
 document.addEventListener('DOMContentLoaded', function() {
     handleRamInquiry();
 });
+
 
 // Make admin functions available globally for console access
 window.getVisitorStats = getVisitorStats;
