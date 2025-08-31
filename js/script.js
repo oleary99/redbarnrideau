@@ -389,7 +389,7 @@ function initGalleryFilter() {
     function applyFilter(filterValue) {
         galleryItems.forEach(item => {
             const itemCategories = item.getAttribute('data-category');
-            if (itemCategories && itemCategories.includes(filterValue)) {
+            if (filterValue === 'all' || (itemCategories && itemCategories.includes(filterValue))) {
                 item.style.display = 'block';
                 setTimeout(() => {
                     item.style.opacity = '1';
