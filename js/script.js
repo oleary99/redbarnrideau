@@ -390,12 +390,12 @@ function initGalleryFilter() {
         galleryItems.forEach(item => {
             const itemCategories = item.getAttribute('data-category');
             if (filterValue === 'all' || (itemCategories && itemCategories.includes(filterValue))) {
+                // Show the item
                 item.style.display = 'block';
-                setTimeout(() => {
-                    item.style.opacity = '1';
-                    item.style.transform = 'translateY(0)';
-                }, 10);
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
             } else {
+                // Hide the item
                 item.style.opacity = '0';
                 item.style.transform = 'translateY(20px)';
                 setTimeout(() => {
