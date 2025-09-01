@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery Test Suite</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .test-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            border: 2px solid #000;
+            padding: 15px;
+            z-index: 9999;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .test-result {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .test-pass { background: #d4edda; color: #155724; }
+        .test-fail { background: #f8d7da; color: #721c24; }
+        .test-button {
+            margin: 5px;
+            padding: 8px 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover { background: #0056b3; }
+        .gallery-item { 
+            border: 2px solid transparent;
+            margin: 10px;
+        }
+        .gallery-item.test-highlight { 
+            border-color: #ff0000 !important;
+            box-shadow: 0 0 10px rgba(255,0,0,0.5) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-panel">
+        <h3>Gallery Test Suite</h3>
+        <div id="test-results"></div>
+        <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+        <button class="test-button" onclick="testAllRamsFilter()">Test All Rams</button>
+        <button class="test-button" onclick="testAvailableFilter()">Test Available</button>
+        <button class="test-button" onclick="clearHighlights()">Clear Highlights</button>
+    </div>
+
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>Red Barn Rideau</h1>
+                <p class="tagline">Test Environment</p>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="gallery-content">
+            <div class="container">
+                <div class="gallery-filter">
+                    <button class="filter-btn" data-filter="all">All Rams</button>
+                    <button class="filter-btn active" data-filter="available">Available</button>
+                </div>
+
+                <div class="gallery-grid" id="gallery-grid">
+                    <div class="gallery-item" data-category="champion available">
+                        <div class="gallery-item-content">
+                            <h3>Thunderbolt</h3>
+                            <p>Category: champion available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="gallery-item" data-category="champion available">
+                        <div class="gallery-item-content">
+                            <h3>Atlas</h3>
+                            <p>Category: champion available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="gallery-item" data-category="available">
+                        <div class="gallery-item-content">
+                            <h3>Summit</h3>
+                            <p>Category: available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="gallery-item" data-category="available">
+                        <div class="gallery-item-content">
+                            <h3>Rocky</h3>
+                            <p>Category: available</p>
+                        </div>
+                    </div>
+                    
+                    <div class="gallery-item" data-category="champion retired">
+                        <div class="gallery-item-content">
+                            <h3>Legend</h3>
+                            <p>Category: champion retired</p>
+                        </div>
+                    </div>
+                    
+                    <div class="gallery-item" data-category="available">
+                        <div class="gallery-item-content">
+                            <h3>Phoenix</h3>
+                            <p>Category: available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/script.js"></script>
+    <script>
+        let testResults = [];
+
+        function addTestResult(testName, passed, details = '') {
+            testResults.push({ name: testName, passed, details });
+            updateTestDisplay();
+        }
+
+        function updateTestDisplay() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = testResults.map(result => {
+                const className = result.passed ? 'test-pass' : 'test-fail';
+                const status = result.passed ? 'PASS' : 'FAIL';
+                return `<div class="test-result ${className}">
+                    ${status}: ${result.name}
+                    ${result.details ? '<br>' + result.details : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                item.classList.remove('test-highlight');
+            });
+        }
+
+        function highlightVisibleItems() {
+            document.querySelectorAll('.gallery-item').forEach(item => {
+                const style = window.getComputedStyle(item);
+                if (style.display !== 'none' && parseFloat(style.opacity) > 0.5) {
+                    item.classList.add('test-highlight');
+                }
+            });
+        }
+
+        function getVisibleItems() {
+            const visibleItems = [];
+            document.querySelectorAll('.gallery-item').forEach((item, index) => {
+                const style = window.getComputedStyle(item);
+                if (style.display !== 'none' && parseFloat(style.opacity) > 0.5) {
+                    visibleItems.push({
+                        index,
+                        name: item.querySelector('h3').textContent,
+                        category: item.getAttribute('data-category')
+                    });
+                }
+            });
+            return visibleItems;
+        }
+
+        function testAllRamsFilter() {
+            clearHighlights();
+            testResults = [];
+            
+            // Click the All Rams button
+            const allRamsBtn = document.querySelector('[data-filter="all"]');
+            if (allRamsBtn) {
+                allRamsBtn.click();
+                
+                setTimeout(() => {
+                    const visibleItems = getVisibleItems();
+                    
+                    // Should show all 6 items
+                    const expectedCount = 6;
+                    const actualCount = visibleItems.length;
+                    
+                    addTestResult(
+                        `All Rams Filter Count`, 
+                        actualCount === expectedCount,
+                        `Expected ${expectedCount}, got ${actualCount}. Visible: ${visibleItems.map(i => i.name).join(', ')}`
+                    );
+                    
+                    // Check if all categories are represented
+                    const categories = visibleItems.map(i => i.category);
+                    const hasChampionAvailable = categories.some(c => c.includes('champion available'));
+                    const hasAvailable = categories.some(c => c.includes('available') && !c.includes('champion'));
+                    const hasRetired = categories.some(c => c.includes('retired'));
+                    
+                    addTestResult('All Rams - Has Champion Available', hasChampionAvailable);
+                    addTestResult('All Rams - Has Available Only', hasAvailable);
+                    addTestResult('All Rams - Has Retired', hasRetired);
+                    
+                    highlightVisibleItems();
+                }, 500);
+            } else {
+                addTestResult('All Rams Button', false, 'Button not found');
+            }
+        }
+
+        function testAvailableFilter() {
+            clearHighlights();
+            testResults = [];
+            
+            // Click the Available button
+            const availableBtn = document.querySelector('[data-filter="available"]');
+            if (availableBtn) {
+                availableBtn.click();
+                
+                setTimeout(() => {
+                    const visibleItems = getVisibleItems();
+                    
+                    // Should show 5 available items (Thunderbolt, Atlas, Summit, Rocky, Phoenix)
+                    const expectedCount = 5;
+                    const actualCount = visibleItems.length;
+                    
+                    addTestResult(
+                        `Available Filter Count`, 
+                        actualCount === expectedCount,
+                        `Expected ${expectedCount}, got ${actualCount}. Visible: ${visibleItems.map(i => i.name).join(', ')}`
+                    );
+                    
+                    // Check that only items with 'available' in category are shown
+                    const allHaveAvailable = visibleItems.every(item => 
+                        item.category.includes('available')
+                    );
+                    addTestResult('Available Filter - All items have "available"', allHaveAvailable);
+                    
+                    // Check that retired items are hidden
+                    const noRetiredItems = !visibleItems.some(item => 
+                        item.category.includes('retired')
+                    );
+                    addTestResult('Available Filter - No retired items', noRetiredItems);
+                    
+                    highlightVisibleItems();
+                }, 500);
+            } else {
+                addTestResult('Available Button', false, 'Button not found');
+            }
+        }
+
+        function runAllTests() {
+            testResults = [];
+            
+            // Test 1: Basic elements exist
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            
+            addTestResult('Filter Buttons Exist', filterButtons.length === 2);
+            addTestResult('Gallery Items Exist', galleryItems.length === 6);
+            
+            // Test 2: Data attributes are correct
+            const expectedCategories = [
+                'champion available',
+                'champion available', 
+                'available',
+                'available',
+                'champion retired',
+                'available'
+            ];
+            
+            let categoriesMatch = true;
+            galleryItems.forEach((item, index) => {
+                const category = item.getAttribute('data-category');
+                if (category !== expectedCategories[index]) {
+                    categoriesMatch = false;
+                }
+            });
+            addTestResult('Data Categories Match', categoriesMatch);
+            
+            // Test 3: Test Available filter first
+            setTimeout(() => {
+                testAvailableFilter();
+                
+                // Test 4: Then test All Rams filter
+                setTimeout(() => {
+                    testAllRamsFilter();
+                }, 1000);
+            }, 500);
+        }
+
+        // Auto-run tests when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

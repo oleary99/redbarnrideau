@@ -381,37 +381,66 @@ function initGalleryFilter() {
     const filterButtons = document.querySelectorAll('.filter-btn');
     const galleryItems = document.querySelectorAll('.gallery-item');
 
+    console.log(`Gallery init: Found ${filterButtons.length} filter buttons and ${galleryItems.length} gallery items`);
+
     if (filterButtons.length === 0 || galleryItems.length === 0) {
+        console.log('No filter buttons or gallery items found - exiting');
         return; // Not on gallery page
     }
 
-    // Function to apply filter
+    // Function to apply filter with comprehensive logging
     function applyFilter(filterValue) {
-        galleryItems.forEach(item => {
+        console.log(`Applying filter: "${filterValue}"`);
+        
+        let shownCount = 0;
+        let hiddenCount = 0;
+        
+        galleryItems.forEach((item, index) => {
             const itemCategories = item.getAttribute('data-category');
+            console.log(`Item ${index}: category="${itemCategories}", checking against filter="${filterValue}"`);
+            
+            // Clear any existing timeouts/animations
+            item.style.transition = 'none';
+            
             if (filterValue === 'all' || (itemCategories && itemCategories.includes(filterValue))) {
-                // Show the item
+                // Show the item - FORCE visibility
+                console.log(`  -> SHOWING item ${index}`);
                 item.style.display = 'block';
                 item.style.opacity = '1';
                 item.style.transform = 'translateY(0)';
+                item.style.visibility = 'visible';
+                shownCount++;
             } else {
                 // Hide the item
+                console.log(`  -> HIDING item ${index}`);
                 item.style.opacity = '0';
                 item.style.transform = 'translateY(20px)';
                 setTimeout(() => {
                     item.style.display = 'none';
                 }, 300);
+                hiddenCount++;
             }
+            
+            // Re-enable transitions after immediate style changes
+            setTimeout(() => {
+                item.style.transition = 'all 0.3s ease';
+            }, 50);
         });
+        
+        console.log(`Filter applied: ${shownCount} shown, ${hiddenCount} hidden`);
     }
 
     // Apply initial filter for "available" items on page load
+    console.log('Applying initial "available" filter');
     applyFilter('available');
 
     // Add click event listeners
-    filterButtons.forEach(button => {
+    filterButtons.forEach((button, index) => {
+        console.log(`Setting up click handler for button ${index}: "${button.textContent.trim()}"`);
+        
         button.addEventListener('click', function() {
             const filterValue = this.getAttribute('data-filter');
+            console.log(`Button clicked: "${this.textContent.trim()}" with filter value: "${filterValue}"`);
             
             // Update active button
             filterButtons.forEach(btn => btn.classList.remove('active'));
@@ -421,6 +450,11 @@ function initGalleryFilter() {
             applyFilter(filterValue);
         });
     });
+    
+    // DEBUG: Make functions available globally
+    window.debugApplyFilter = applyFilter;
+    window.debugGalleryItems = galleryItems;
+    window.debugFilterButtons = filterButtons;
 }
 
 // Handle URL parameters for pre-selecting rams
